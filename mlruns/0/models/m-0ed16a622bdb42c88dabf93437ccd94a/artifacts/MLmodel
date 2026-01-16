@@ -1,0 +1,22 @@
+artifact_path: file:C:/Users/pavan/OneDrive/Documents/GENERATIVE_AI/Network_Security/mlruns/0/models/m-0ed16a622bdb42c88dabf93437ccd94a/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.12.12
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.8.0
+mlflow_version: 3.8.1
+model_id: m-0ed16a622bdb42c88dabf93437ccd94a
+model_size_bytes: 27318528
+model_uuid: m-0ed16a622bdb42c88dabf93437ccd94a
+prompts: null
+run_id: b31c01c9768c4fcfa04e296c7900f4b8
+utc_time_created: '2026-01-16 04:50:12.532396'
