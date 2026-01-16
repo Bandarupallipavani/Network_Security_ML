@@ -47,7 +47,7 @@ class ModelTrainer:
             raise NetworkSecurityException(e,sys)
         
     def track_mlflow(self,best_model,classificationmetric):
-        mlflow.set_registry_uri("https://dagshub.com/krishnaik06/networksecurity.mlflow")
+        mlflow.set_registry_uri("https://dagshub.com/Bandarupallipavani/Network_Security_ML.mlflow")
         tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
         with mlflow.start_run():
             f1_score=classificationmetric.f1_score
@@ -176,7 +176,7 @@ class ModelTrainer:
                 test_arr[:, -1],
             )
 
-            model_trainer_artifact=self.train_model(x_train,y_train,x_test,y_test)
+            model_trainer_artifact=self.train_model(X_train,y_train,x_test,y_test)
             return model_trainer_artifact
 
             
