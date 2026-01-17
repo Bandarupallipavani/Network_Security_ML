@@ -96,6 +96,7 @@ jobs:
           sudo docker run -d \
             -p 8080:8080 \
             --name networksecurity \
+            -e MONGO_DB_URL=${{ secrets.MONGO_DB_URL }} \
             637423212307.dkr.ecr.us-east-1.amazonaws.com/networksecurity:latest
 
       - name: Clean unused Docker resources
