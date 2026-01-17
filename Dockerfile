@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . /app
 
-# Install system dependencies
+# Install system dependencies (awscli NOT needed at runtime, but keeping if required)
 RUN apt-get update \
     && apt-get install -y awscli \
     && rm -rf /var/lib/apt/lists/*
@@ -12,4 +12,6 @@ RUN apt-get update \
 # Install python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["python", "app.py"]
+EXPOSE 8080
+
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
