@@ -1,15 +1,15 @@
 import sys
 import os
 import certifi
-import pandas as pd
-import pymongo
-
 from dotenv import load_dotenv
+
 from fastapi import FastAPI, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
-from starlette.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
+
+import pandas as pd
+import pymongo
 
 from networksecurity.exception.exception import NetworkSecurityException
 from networksecurity.pipeline.training_pipeline import TrainingPipeline
@@ -20,34 +20,13 @@ from networksecurity.constant.training_pipeline import (
     DATA_INGESTION_DATABASE_NAME
 )
 
-# ------------------------------------------------------------------
-# ENV + DATABASE (SAFE MODE – no crash)
-# ------------------------------------------------------------------
-
+# -------------------- ENV --------------------
 load_dotenv()
-ca = certifi.where()
+MONGO_DB_URL = os.getenv("MONGO_DB_URL")
 
-mongo_db_url = os.getenv("MONGO_DB_URL")
-
-client = None
-collection = None
-
-if mongo_db_url:
-    try:
-        client = pymongo.MongoClient(mongo_db_url, tlsCAFile=ca)
-        database = client[DATA_INGESTION_DATABASE_NAME]
-        collection = database[DATA_INGESTION_COLLECTION_NAME]
-        print("✅ MongoDB connected")
-    except Exception as e:
-        print("⚠️ MongoDB connection failed:", e)
-else:
-    print("⚠️ MONGO_DB_URL not set — running without DB")
-
-# ------------------------------------------------------------------
-# FASTAPI APP
-# ------------------------------------------------------------------
-
+# -------------------- APP --------------------
 app = FastAPI(title="Network Security ML API")
+templates = Jinja2Templates(directory="templates")
 
 app.add_middleware(
     CORSMiddleware,
@@ -57,37 +36,39 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-templates = Jinja2Templates(directory="templates")
+# -------------------- DB (OPTIONAL) --------------------
+collection = None
+if MONGO_DB_URL:
+    try:
+        ca = certifi.where()
+        client = pymongo.MongoClient(MONGO_DB_URL, tlsCAFile=ca)
+        db = client[DATA_INGESTION_DATABASE_NAME]
+        collection = db[DATA_INGESTION_COLLECTION_NAME]
+        print("✅ MongoDB connected")
+    except Exception as e:
+        print("⚠️ MongoDB connection failed:", e)
+else:
+    print("⚠️ MongoDB not configured – running without DB")
 
-# ------------------------------------------------------------------
-# ROUTES
-# ------------------------------------------------------------------
-
+# -------------------- ROUTES --------------------
 @app.get("/")
-async def root():
-    return RedirectResponse(url="/docs")
-
+def root():
+    return RedirectResponse("/docs")
 
 @app.get("/health")
-async def health_check():
-    return {"status": "OK"}
-
+def health():
+    return {"status": "running"}
 
 @app.get("/train")
-async def train_route():
+def train():
     try:
-        train_pipeline = TrainingPipeline()
-        train_pipeline.run_pipeline()
-        return {"message": "Training completed successfully"}
+        TrainingPipeline().run_pipeline()
+        return {"message": "Training completed"}
     except Exception as e:
         raise NetworkSecurityException(e, sys)
 
-
 @app.post("/predict")
-async def predict_route(
-    request: Request,
-    file: UploadFile = File(...)
-):
+async def predict(request: Request, file: UploadFile = File(...)):
     try:
         df = pd.read_csv(file.file)
 
@@ -99,35 +80,11 @@ async def predict_route(
             model=model
         )
 
-        predictions = network_model.predict(df)
-        df["prediction"] = predictions
-
-        os.makedirs("prediction_output", exist_ok=True)
-        df.to_csv("prediction_output/output.csv", index=False)
-
-        table_html = df.to_html(classes="table table-striped")
-
+        df["prediction"] = network_model.predict(df)
         return templates.TemplateResponse(
             "table.html",
-            {
-                "request": request,
-                "table": table_html
-            }
+            {"request": request, "table": df.to_html()}
         )
 
     except Exception as e:
         raise NetworkSecurityException(e, sys)
-
-
-# ------------------------------------------------------------------
-# MAIN ENTRY (IMPORTANT)
-# ------------------------------------------------------------------
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(
-        "app:app",
-        host="0.0.0.0",
-        port=8080,
-        reload=False
-    )
