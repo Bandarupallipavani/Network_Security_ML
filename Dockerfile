@@ -4,13 +4,13 @@ WORKDIR /app
 
 COPY . /app
 
-# Install system dependencies (awscli NOT needed at runtime, but keeping if required)
-RUN apt-get update \
-    && apt-get install -y awscli \
+RUN apt-get update && apt-get install -y \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+
+    RUN pip install --no-cache-dir -r requirements.txt
+
 
 EXPOSE 8080
 
