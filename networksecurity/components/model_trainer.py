@@ -40,7 +40,7 @@ if os.getenv("DAGSHUB_TOKEN"):
         mlflow=True
     )
 else:
-    print("⚠️ DAGsHub token not found – skipping DAGsHub init")
+    print("DAGsHub token not found – skipping DAGsHub init")
 
 
 
