@@ -25,14 +25,22 @@ from sklearn.ensemble import (
 )
 import mlflow
 from urllib.parse import urlparse
-
 import dagshub
-dagshub.init(repo_owner='Bandarupallipavani', repo_name='Network_Security_ML', mlflow=True)
 
 
-os.environ["MLFLOW_TRACKING_URI"]="https://dagshub.com/Bandarupallipavani/Network_Security_ML.mlflow"
-os.environ["MLFLOW_TRACKING_USERNAME"]="Bandarupallipavani"
-os.environ["MLFLOW_TRACKING_PASSWORD"]="bfc815e41b7fd8964e5d3463f930284c5da15dc6"
+# Set MLflow tracking only if token exists
+if os.getenv("DAGSHUB_TOKEN"):
+    os.environ["MLFLOW_TRACKING_URI"] = "https://dagshub.com/Bandarupallipavani/Network_Security_ML.mlflow"
+    os.environ["MLFLOW_TRACKING_USERNAME"] = "Bandarupallipavani"
+    os.environ["MLFLOW_TRACKING_PASSWORD"] = os.getenv("DAGSHUB_TOKEN")
+
+    dagshub.init(
+        repo_owner="Bandarupallipavani",
+        repo_name="Network_Security_ML",
+        mlflow=True
+    )
+else:
+    print("⚠️ DAGsHub token not found – skipping DAGsHub init")
 
 
 
